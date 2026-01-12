@@ -41,6 +41,7 @@ ws.onopen = () => {
 
 ws.onmessage = (event) => {
   const msg = JSON.parse(event.data);
+  console.log("Received message:", msg);
   addMessage(msg);
 };
 
@@ -89,4 +90,4 @@ function addMessage(msg) {
 }
 
 // Initialize
-loadHeadline();
+loadHeadline();loadHeadline();

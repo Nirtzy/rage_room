@@ -125,7 +125,11 @@ async def websocket_endpoint(websocket: WebSocket):
     connected_clients.add(websocket)
 
     try:
+        # Small delay to ensure WebSocket is fully ready
+        await asyncio.sleep(0.1)
+
         # Send message history to new user
+        print(f"Sending {len(messages)} messages to new user")
         for msg in messages:
             await websocket.send_text(json.dumps(msg))
 
