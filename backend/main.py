@@ -8,7 +8,6 @@ import asyncio
 import json
 from typing import Dict, Set
 import time
-import os
 from pathlib import Path
 
 app = FastAPI()
@@ -91,9 +90,32 @@ def save_messages():
 @app.on_event("startup")
 async def startup_event():
     """Start the midnight clearing task and load messages"""
+    print("=" * 50)
+    print("SERVER STARTING UP")
+    print(f"Current date: {datetime.now()}")
     load_messages()
+    print(f"Messages loaded: {len(messages)}")
+    print("Starting background tasks...")
     asyncio.create_task(midnight_clear_task())
     asyncio.create_task(periodic_save_task())
+    asyncio.create_task(keep_alive_task())
+    print("Server startup complete!")
+    print("=" * 50)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Save messages before shutdown"""
+    print("=" * 50)
+    print("SERVER SHUTTING DOWN")
+    save_messages()
+    print(f"Final save: {len(messages)} messages saved")
+    print("=" * 50)
+
+async def keep_alive_task():
+    """Keep the server alive by logging heartbeat"""
+    while True:
+        await asyncio.sleep(300)  # Every 5 minutes
+        print(f"[HEARTBEAT] Server alive - {len(messages)} messages, {len(connected_clients)} clients")
 
 async def periodic_save_task():
     """Save messages every 30 seconds"""
@@ -125,6 +147,16 @@ async def midnight_clear_task():
 @app.get("/")
 async def get_index():
     return FileResponse("static/index.html")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Render"""
+    return {
+        "status": "healthy",
+        "message_count": len(messages),
+        "connected_clients": len(connected_clients),
+        "last_clear_date": last_clear_date.isoformat()
+    }
 
 @app.get("/api/today")
 async def get_today():
