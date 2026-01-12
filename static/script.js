@@ -36,6 +36,7 @@ const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
   console.log("WebSocket connected");
+  // Message history will be sent automatically by the server
 };
 
 ws.onmessage = (event) => {
