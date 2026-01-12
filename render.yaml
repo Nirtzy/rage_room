@@ -1,0 +1,10 @@
+services:
+        value: 3.11.0
+      - key: PYTHON_VERSION
+    envVars:
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    env: python
+    name: rage-room
+  - type: web
+
