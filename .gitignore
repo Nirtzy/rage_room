@@ -141,4 +141,7 @@ Thumbs.db
 # Project specific
 *.db
 *.sqlite
+*.sqlite3
+messages.json
+messages_metadata.json
 
