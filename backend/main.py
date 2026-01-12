@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +8,8 @@ import asyncio
 import json
 from typing import Dict, Set
 import time
+import os
+from pathlib import Path
 
 app = FastAPI()
 
@@ -22,6 +24,10 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# File to store messages
+MESSAGES_FILE = Path("messages.json")
+METADATA_FILE = Path("messages_metadata.json")
+
 # Store messages in memory (will be cleared at midnight)
 messages = deque(maxlen=1000)  # Limit to 1000 messages max
 connected_clients: Set[WebSocket] = set()
@@ -33,10 +39,67 @@ MAX_MESSAGES_PER_MINUTE = 25
 MAX_MESSAGE_LENGTH = 500
 MAX_CONNECTIONS = 100
 
+def load_messages():
+    """Load messages from file on startup"""
+    global messages, last_clear_date
+
+    try:
+        # Load metadata
+        if METADATA_FILE.exists():
+            with open(METADATA_FILE, 'r') as f:
+                metadata = json.load(f)
+                stored_date = datetime.fromisoformat(metadata['last_clear_date']).date()
+
+                # If it's a new day, don't load old messages
+                if stored_date != datetime.now().date():
+                    print(f"New day detected. Not loading messages from {stored_date}")
+                    last_clear_date = datetime.now().date()
+                    save_messages()  # Clear the file
+                    return
+
+                last_clear_date = stored_date
+
+        # Load messages
+        if MESSAGES_FILE.exists():
+            with open(MESSAGES_FILE, 'r') as f:
+                stored_messages = json.load(f)
+                messages.extend(stored_messages)
+                print(f"Loaded {len(messages)} messages from file")
+        else:
+            print("No existing messages file found")
+    except Exception as e:
+        print(f"Error loading messages: {e}")
+
+def save_messages():
+    """Save messages to file"""
+    try:
+        # Save messages
+        with open(MESSAGES_FILE, 'w') as f:
+            json.dump(list(messages), f)
+
+        # Save metadata
+        with open(METADATA_FILE, 'w') as f:
+            json.dump({
+                'last_clear_date': last_clear_date.isoformat(),
+                'message_count': len(messages)
+            }, f)
+
+        print(f"Saved {len(messages)} messages to file")
+    except Exception as e:
+        print(f"Error saving messages: {e}")
+
 @app.on_event("startup")
 async def startup_event():
-    """Start the midnight clearing task"""
+    """Start the midnight clearing task and load messages"""
+    load_messages()
     asyncio.create_task(midnight_clear_task())
+    asyncio.create_task(periodic_save_task())
+
+async def periodic_save_task():
+    """Save messages every 30 seconds"""
+    while True:
+        await asyncio.sleep(30)
+        save_messages()
 
 async def midnight_clear_task():
     """Clear messages at midnight every day"""
@@ -50,6 +113,7 @@ async def midnight_clear_task():
             if now.time() >= dt_time(0, 0) and now.time() < dt_time(0, 5):
                 messages.clear()
                 last_clear_date = now.date()
+                save_messages()  # Save after clearing
                 print(f"Messages cleared at midnight: {now}")
 
                 # Notify all connected clients
