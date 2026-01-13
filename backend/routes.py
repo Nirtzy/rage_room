@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models import Message
-from backend.config import STATIC_DIR
+from backend.config import STATIC_DIR, DAILY_TOPIC, DAILY_RULES
 
 router = APIRouter()
 
@@ -40,7 +40,7 @@ async def get_today():
         "date": now.strftime("%Y-%m-%d"),
         "time": now.strftime("%H:%M:%S"),
         "title": f"today's topic: {DAILY_TOPIC}",
-        "rules": DAILY_RULES,
+        "rules": f"{DAILY_RULES}",
         "image_url": "/static/ice_image.jpg"
     }
 
