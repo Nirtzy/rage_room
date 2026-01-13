@@ -8,8 +8,6 @@ STATIC_DIR = BASE_DIR / "static"
 
 # Database
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./messages.db")
-
-# If using PostgreSQL on Render, fix the URL format
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
