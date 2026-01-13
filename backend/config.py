@@ -17,7 +17,6 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 MAX_MESSAGES_PER_MINUTE = 25
 MAX_MESSAGE_LENGTH = 500
 MAX_CONNECTIONS = 100
-MAX_MESSAGES_STORED = 1000
 
 # CORS
 ALLOWED_ORIGINS = ["*"]  # In production, specify your domain

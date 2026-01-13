@@ -1,6 +1,6 @@
 """Database models"""
 from sqlalchemy import Column, Integer, String, DateTime
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.database import Base
 
 
@@ -11,7 +11,7 @@ class Message(Base):
     id = Column(Integer, primary_key=True, index=True)
     user = Column(String(50), nullable=False)
     text = Column(String(500), nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     date_created = Column(String(10), nullable=False)  # YYYY-MM-DD for daily clearing
 
     def to_dict(self):

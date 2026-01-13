@@ -23,18 +23,3 @@ class MessageCreate(BaseModel):
         return text
 
 
-class MessageResponse(BaseModel):
-    """Schema for message response"""
-    user: str
-    text: str
-    timestamp: str
-
-    class Config:
-        from_attributes = True
-
-
-class MessageInDB(MessageResponse):
-    """Schema for message in database"""
-    id: int
-    date_created: str
-

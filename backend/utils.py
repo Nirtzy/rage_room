@@ -27,4 +27,3 @@ def is_rate_limited(user: str) -> bool:
     user_timestamps.append(now)
     return False
 
-

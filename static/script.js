@@ -172,4 +172,4 @@ function addMessage(msg) {
 }
 
 // Initialize
-loadHeadline();loadHeadline();
+loadHeadline();
