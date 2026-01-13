@@ -21,3 +21,7 @@ MAX_CONNECTIONS = 100
 # CORS
 ALLOWED_ORIGINS = ["*"]  # In production, specify your domain
 
+# Daily Topic Configuration
+DAILY_TOPIC = os.getenv("DAILY_TOPIC", "what you think about ICE?")
+DAILY_RULES = os.getenv("DAILY_RULES", "no rules, just speak your mind!")
+

@@ -39,8 +39,8 @@ async def get_today():
     return {
         "date": now.strftime("%Y-%m-%d"),
         "time": now.strftime("%H:%M:%S"),
-        "title": "today's topic: what you think about ICE?",
-        "rules": "no rules, just speak your mind!",
+        "title": f"today's topic: {DAILY_TOPIC}",
+        "rules": DAILY_RULES,
         "image_url": "/static/ice_image.jpg"
     }
 

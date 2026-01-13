@@ -288,6 +288,32 @@ After deployment, you'll have:
 - Timer continues counting down from where it was
 - Only resets after 10 full minutes expire
 
+### How do I change the daily topic without redeploying?
+
+**Use Environment Variables on Render:**
+
+1. Go to your Web Service on Render Dashboard
+2. Click **"Environment"** tab
+3. Add these environment variables:
+   - **Key**: `DAILY_TOPIC`
+   - **Value**: `why is coffee so expensive?` (or any topic you want)
+   
+   - **Key**: `DAILY_RULES` (optional)
+   - **Value**: `keep it civil!` (or any rules)
+
+4. Click **"Save Changes"**
+5. Render automatically restarts your service (takes ~30 seconds)
+6. Your new topic appears immediately!
+
+**No code changes or redeployment needed!**
+
+**Examples:**
+- `DAILY_TOPIC=why is traffic so bad?`
+- `DAILY_TOPIC=what's wrong with customer service?`
+- `DAILY_TOPIC=Monday mornings, am I right?`
+
+**Default topic** (if not set): `"what you think about ICE?"`
+
 ---
 
 **You're all set!** 🎉 Your Rage Room is now live with PostgreSQL persistence!
