@@ -18,6 +18,14 @@ header {
   position: relative;
 }
 
+#disclaimer {
+  color: #2d5f2d;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.5;
+}
+
 #nickname-display {
   position: absolute;
   top: 0.5rem;
