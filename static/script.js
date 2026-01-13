@@ -9,23 +9,34 @@ function generateNickname() {
 
 function getNickname() {
   const NICKNAME_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+
+  console.log('[Nickname] Checking localStorage...');
   const stored = localStorage.getItem('rage_room_nickname');
+  console.log('[Nickname] Stored data:', stored);
 
   if (stored) {
     try {
       const data = JSON.parse(stored);
       const now = Date.now();
+      const age = now - data.timestamp;
+      const remaining = NICKNAME_EXPIRY_MS - age;
+
+      console.log('[Nickname] Parsed data:', data);
+      console.log('[Nickname] Age (ms):', age);
+      console.log('[Nickname] Remaining (ms):', remaining);
 
       // Check if nickname is still valid (less than 10 minutes old)
-      if (now - data.timestamp < NICKNAME_EXPIRY_MS) {
-        console.log(`Reusing nickname: ${data.nickname} (${Math.floor((NICKNAME_EXPIRY_MS - (now - data.timestamp)) / 1000 / 60)} minutes remaining)`);
+      if (remaining > 0) {
+        console.log(`✅ Reusing nickname: ${data.nickname} (${Math.floor(remaining / 1000 / 60)} min ${Math.floor((remaining % 60000) / 1000)} sec remaining)`);
         return data.nickname;
       } else {
-        console.log('Nickname expired, generating new one');
+        console.log('⏰ Nickname expired, generating new one');
       }
     } catch (e) {
-      console.log('Invalid stored nickname, generating new one');
+      console.log('❌ Invalid stored nickname, generating new one:', e);
     }
+  } else {
+    console.log('[Nickname] No stored nickname found');
   }
 
   // Generate new nickname and store it
@@ -34,8 +45,15 @@ function getNickname() {
     nickname: newNickname,
     timestamp: Date.now()
   };
-  localStorage.setItem('rage_room_nickname', JSON.stringify(data));
-  console.log(`New nickname generated: ${newNickname}`);
+
+  try {
+    localStorage.setItem('rage_room_nickname', JSON.stringify(data));
+    console.log(`✨ New nickname generated and stored: ${newNickname}`);
+    console.log('[Nickname] Stored data:', JSON.stringify(data));
+  } catch (e) {
+    console.error('❌ Failed to store nickname in localStorage:', e);
+  }
+
   return newNickname;
 }
 
