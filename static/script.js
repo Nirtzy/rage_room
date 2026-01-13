@@ -108,6 +108,31 @@ setInterval(updateNicknameDisplay, 1000);
 const chatWindow = document.getElementById("chat-window");
 const input = document.getElementById("message-input");
 const sendBtn = document.getElementById("send-btn");
+const emojiBtn = document.getElementById("emoji-btn");
+const emojiPicker = document.getElementById("emoji-picker");
+
+// Emoji picker toggle
+emojiBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isVisible = emojiPicker.style.display === "block";
+  emojiPicker.style.display = isVisible ? "none" : "block";
+});
+
+// Close emoji picker when clicking outside
+document.addEventListener("click", (e) => {
+  if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
+    emojiPicker.style.display = "none";
+  }
+});
+
+// Emoji click handler
+document.querySelectorAll(".emoji").forEach(emoji => {
+  emoji.addEventListener("click", () => {
+    input.value += emoji.textContent;
+    input.focus();
+    emojiPicker.style.display = "none";
+  });
+});
 
 // Load today's headline
 async function loadHeadline() {
