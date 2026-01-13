@@ -248,6 +248,46 @@ After deployment, you'll have:
 - [ ] Nickname timer works (10 minutes)
 - [ ] Rate limiting works (25 messages/minute)
 
+## ❓ Frequently Asked Questions
+
+### What happens when the 10-minute timer runs out?
+
+**Behavior:**
+1. Timer counts down from 10:00 to 0:00
+2. When **30 seconds remain** (0:30), timer turns **red** as a warning
+3. When timer hits **0:00**:
+   - Page automatically reloads
+   - New nickname is generated
+   - User can continue chatting with new identity
+   - Chat history remains visible (from database)
+
+**User Experience:**
+- ⚠️ Users lose any message they're currently typing
+- ✅ They can immediately start chatting again with new nickname
+- ✅ All previous messages stay visible
+- ✅ Clear visual warning (red timer) before reload
+
+**Why 10 minutes?**
+- Prevents spam by limiting rapid nickname changes
+- Provides temporary accountability
+- Maintains anonymity (no permanent identity)
+- Rate limiting tracks by nickname (25 msg/min per user)
+
+### Can users extend their timer?
+
+**No** - this is intentional to maintain fairness:
+- Prevents users from "camping" on a nickname forever
+- Ensures everyone gets fresh identities periodically
+- Maintains the "rage room" concept of temporary venting
+
+### What if someone refreshes the page before 10 minutes?
+
+**Timer persists!** 
+- Nickname and timer stored in browser's `localStorage`
+- Refreshing the page keeps the same nickname
+- Timer continues counting down from where it was
+- Only resets after 10 full minutes expire
+
 ---
 
 **You're all set!** 🎉 Your Rage Room is now live with PostgreSQL persistence!

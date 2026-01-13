@@ -62,6 +62,7 @@ const nickname = getNickname();
 // Update nickname display
 function updateNicknameDisplay() {
   const NICKNAME_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+  const WARNING_TIME_MS = 30 * 1000; // Show warning 30 seconds before expiry
   const stored = localStorage.getItem('rage_room_nickname');
 
   if (stored) {
@@ -77,8 +78,20 @@ function updateNicknameDisplay() {
 
         document.getElementById('current-nickname').textContent = data.nickname;
         document.getElementById('nickname-timer').textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+
+        // Show warning when less than 30 seconds remain
+        const timerElement = document.getElementById('nickname-timer');
+        if (remaining <= WARNING_TIME_MS) {
+          timerElement.style.color = '#ff6b6b';
+          timerElement.style.fontWeight = 'bold';
+        } else {
+          timerElement.style.color = '#aaa';
+          timerElement.style.fontWeight = 'normal';
+        }
       } else {
-        // Nickname expired, reload to get new one
+        // Nickname expired - generate new one and reload
+        console.log('⏰ Nickname expired - generating new nickname');
+        localStorage.removeItem('rage_room_nickname');
         location.reload();
       }
     } catch (e) {
