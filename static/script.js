@@ -7,7 +7,71 @@ function generateNickname() {
   return `${adj}${animal}${num}`;
 }
 
-const nickname = generateNickname();
+function getNickname() {
+  const NICKNAME_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+  const stored = localStorage.getItem('rage_room_nickname');
+
+  if (stored) {
+    try {
+      const data = JSON.parse(stored);
+      const now = Date.now();
+
+      // Check if nickname is still valid (less than 10 minutes old)
+      if (now - data.timestamp < NICKNAME_EXPIRY_MS) {
+        console.log(`Reusing nickname: ${data.nickname} (${Math.floor((NICKNAME_EXPIRY_MS - (now - data.timestamp)) / 1000 / 60)} minutes remaining)`);
+        return data.nickname;
+      } else {
+        console.log('Nickname expired, generating new one');
+      }
+    } catch (e) {
+      console.log('Invalid stored nickname, generating new one');
+    }
+  }
+
+  // Generate new nickname and store it
+  const newNickname = generateNickname();
+  const data = {
+    nickname: newNickname,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('rage_room_nickname', JSON.stringify(data));
+  console.log(`New nickname generated: ${newNickname}`);
+  return newNickname;
+}
+
+const nickname = getNickname();
+
+// Update nickname display
+function updateNicknameDisplay() {
+  const NICKNAME_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+  const stored = localStorage.getItem('rage_room_nickname');
+
+  if (stored) {
+    try {
+      const data = JSON.parse(stored);
+      const now = Date.now();
+      const elapsed = now - data.timestamp;
+      const remaining = NICKNAME_EXPIRY_MS - elapsed;
+
+      if (remaining > 0) {
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+
+        document.getElementById('current-nickname').textContent = data.nickname;
+        document.getElementById('nickname-timer').textContent = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+      } else {
+        // Nickname expired, reload to get new one
+        location.reload();
+      }
+    } catch (e) {
+      console.error('Error updating nickname display', e);
+    }
+  }
+}
+
+// Update timer every second
+updateNicknameDisplay();
+setInterval(updateNicknameDisplay, 1000);
 
 // Elements
 const chatWindow = document.getElementById("chat-window");

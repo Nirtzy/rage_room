@@ -15,6 +15,29 @@ header {
   margin-bottom: 1rem;
   border-bottom: 1px solid #333;
   padding-bottom: 0.5rem;
+  position: relative;
+}
+
+#nickname-display {
+  position: absolute;
+  top: 0.5rem;
+  right: 0;
+  background: #222;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #444;
+  font-size: 0.85rem;
+}
+
+#current-nickname {
+  color: #ffab91;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+#nickname-timer {
+  color: #aaa;
+  font-size: 0.75rem;
 }
 
 #chat-window {
