@@ -127,10 +127,10 @@ document.addEventListener("click", (e) => {
 
 // Emoji click handler
 document.querySelectorAll(".emoji").forEach(emoji => {
-  emoji.addEventListener("click", () => {
+  emoji.addEventListener("click", (e) => {
+    e.stopPropagation(); // Prevent closing when clicking emoji
     input.value += emoji.textContent;
     input.focus();
-    emojiPicker.style.display = "none";
   });
 });
 
