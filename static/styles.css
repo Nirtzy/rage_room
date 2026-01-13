@@ -97,7 +97,7 @@ header {
 .emoji {
   font-size: 1.8rem;
   cursor: pointer;
-  padding: 0.4rem;
+  padding: 0.2rem;
   text-align: center;
   border-radius: 3px;
   transition: all 0.2s;
