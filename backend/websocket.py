@@ -4,10 +4,11 @@ from typing import Set
 from datetime import datetime, time as dt_time
 import asyncio
 import json
-from sqlalchemy.orm import Session
+from pydantic import ValidationError
 from backend.database import SessionLocal
 from backend.models import Message
-from backend.utils import is_rate_limited, sanitize_message
+from backend.schemas import MessageCreate
+from backend.utils import is_rate_limited
 from backend.config import MAX_CONNECTIONS
 
 # Track connected clients
@@ -47,9 +48,19 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 msg_data = json.loads(data)
 
+                # Validate with Pydantic
+                try:
+                    message_create = MessageCreate(**msg_data)
+                except ValidationError as e:
+                    await websocket.send_text(json.dumps({
+                        "user": "System",
+                        "text": f"Invalid message: {e.errors()[0]['msg']}",
+                        "timestamp": datetime.now().isoformat()
+                    }))
+                    continue
+
                 # Rate limiting
-                user = msg_data.get("user", "Anonymous")
-                if is_rate_limited(user):
+                if is_rate_limited(message_create.user):
                     await websocket.send_text(json.dumps({
                         "user": "System",
                         "text": "You're sending messages too quickly. Please slow down.",
@@ -57,15 +68,12 @@ async def websocket_endpoint(websocket: WebSocket):
                     }))
                     continue
 
-                # Sanitize message
-                sanitized_msg = sanitize_message(msg_data)
-
                 # Save to database
                 db_message = Message(
-                    user=sanitized_msg["user"],
-                    text=sanitized_msg["text"],
-                    timestamp=datetime.fromisoformat(sanitized_msg["timestamp"]),
-                    date_created=sanitized_msg["date_created"]
+                    user=message_create.user,
+                    text=message_create.text,
+                    timestamp=datetime.now(),
+                    date_created=datetime.now().strftime("%Y-%m-%d")
                 )
                 db.add(db_message)
                 db.commit()
@@ -74,8 +82,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Broadcast to all clients
                 await broadcast(db_message.to_dict())
 
-            except (json.JSONDecodeError, ValueError) as e:
-                # Invalid message format
+            except json.JSONDecodeError:
+                # Invalid JSON format
                 await websocket.send_text(json.dumps({
                     "user": "System",
                     "text": "Invalid message format",

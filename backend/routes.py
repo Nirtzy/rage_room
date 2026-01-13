@@ -45,7 +45,7 @@ async def get_today():
     }
 
 
-@router.get("/api/messages")
+@router.get("/api/messages", response_model=dict)
 async def get_messages(db: Session = Depends(get_db)):
     """Get message history for new users"""
     today = datetime.now().strftime("%Y-%m-%d")
