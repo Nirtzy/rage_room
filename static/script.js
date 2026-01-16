@@ -1,3 +1,54 @@
+// Authentication state
+let currentUser = null;
+let authToken = localStorage.getItem('access_token');
+
+// Check if user is logged in
+async function checkAuth() {
+  const authLinks = document.getElementById('auth-links');
+
+  if (authToken) {
+    try {
+      const response = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (response.ok) {
+        currentUser = await response.json();
+        authLinks.innerHTML = `
+          <span style="color: #00ff00; margin-right: 10px;">👤 ${currentUser.username}</span>
+          ${currentUser.is_admin ? '<a href="/static/admin.html" style="color: #00ff00; text-decoration: none; margin-right: 10px;">⚙️ Admin</a>' : ''}
+          <button onclick="logout()" style="padding: 5px 10px; background-color: #ff0000; color: white; border: none; border-radius: 3px; cursor: pointer; font-family: 'Courier New', monospace;">Logout</button>
+        `;
+      } else {
+        // Token invalid
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        authToken = null;
+        showLoginLink();
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      showLoginLink();
+    }
+  } else {
+    showLoginLink();
+  }
+}
+
+function showLoginLink() {
+  const authLinks = document.getElementById('auth-links');
+  authLinks.innerHTML = '<a href="/static/login.html" style="color: #00ff00; text-decoration: none; border: 1px solid #00ff00; padding: 5px 10px; border-radius: 5px;">Login / Register</a>';
+}
+
+function logout() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('rage_room_nickname');
+  window.location.reload();
+}
+
 function generateNickname() {
   const adjectives = ["Angry", "Furious", "Irritated", "Salty", "Spicy", "Annoyed"];
   const animals = ["Fox", "Penguin", "Tiger", "Sloth", "Gorilla", "Panda"];
@@ -210,4 +261,5 @@ function addMessage(msg) {
 }
 
 // Initialize
+checkAuth();  // Check authentication status
 loadHeadline();

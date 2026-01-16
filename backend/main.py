@@ -9,10 +9,14 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 import asyncio
 
-from backend.config import ALLOWED_ORIGINS, STATIC_DIR
-from backend.database import init_db
+from backend.config import ALLOWED_ORIGINS, STATIC_DIR, ADMIN_EMAIL, ADMIN_PASSWORD
+from backend.database import init_db, SessionLocal
 from backend.routes import router
+from backend.auth_routes import router as auth_router
+from backend.admin_routes import router as admin_router
 from backend.websocket import websocket_endpoint, midnight_clear_task, keep_alive_task
+from backend.models import User
+from backend.auth import get_password_hash
 
 
 @asynccontextmanager
@@ -25,6 +29,32 @@ async def lifespan(app: FastAPI):
 
     # Initialize database
     init_db()
+
+    # Create admin user if it doesn't exist and password is set
+    if ADMIN_PASSWORD:
+        db = SessionLocal()
+        try:
+            admin = db.query(User).filter(User.email == ADMIN_EMAIL).first()
+            if not admin:
+                admin = User(
+                    email=ADMIN_EMAIL,
+                    username="admin",
+                    hashed_password=get_password_hash(ADMIN_PASSWORD),
+                    is_admin=True,
+                    is_active=True
+                )
+                db.add(admin)
+                db.commit()
+                print(f"✅ Admin user created: {ADMIN_EMAIL}")
+            else:
+                print(f"ℹ️  Admin user already exists: {ADMIN_EMAIL}")
+        except Exception as e:
+            print(f"⚠️  Error creating admin user: {e}")
+            db.rollback()
+        finally:
+            db.close()
+    else:
+        print("⚠️  ADMIN_PASSWORD not set - admin user not created")
 
     # Start background tasks
     print("Starting background tasks...")
@@ -59,6 +89,8 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Include routes
 app.include_router(router)
+app.include_router(auth_router)
+app.include_router(admin_router)
 
 
 @app.websocket("/ws")

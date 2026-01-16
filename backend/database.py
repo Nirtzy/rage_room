@@ -24,7 +24,7 @@ def get_db():
 
 def init_db():
     """Initialize database tables"""
-    from backend.models import Message  # Import here to avoid circular imports
+    from backend.models import Message, User  # Import here to avoid circular imports
     Base.metadata.create_all(bind=engine)
     print("Database tables created successfully")
 
