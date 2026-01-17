@@ -26,7 +26,9 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@rageroom.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Set this in environment variables
 
 # CORS
-ALLOWED_ORIGINS = ["*"]  # In production, specify your domain
+# Note: When allow_credentials=True, cannot use ["*"]
+# For production, specify your actual domain(s)
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",") if os.getenv("ALLOWED_ORIGINS") else ["*"]
 
 # Daily Topic Configuration
 DAILY_TOPIC = os.getenv("DAILY_TOPIC")

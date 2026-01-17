@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime
 import asyncio
+import logging
 
 from backend.config import ALLOWED_ORIGINS, STATIC_DIR, ADMIN_EMAIL, ADMIN_PASSWORD
 from backend.database import init_db, SessionLocal
@@ -17,6 +18,13 @@ from backend.admin_routes import router as admin_router
 from backend.websocket import websocket_endpoint, midnight_clear_task, keep_alive_task
 from backend.models import User
 from backend.auth import get_password_hash
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -45,16 +53,21 @@ async def lifespan(app: FastAPI):
                 )
                 db.add(admin)
                 db.commit()
-                print(f"✅ Admin user created: {ADMIN_EMAIL}")
+                logger.info(f"✅ Admin user created: {ADMIN_EMAIL}")
             else:
-                print(f"ℹ️  Admin user already exists: {ADMIN_EMAIL}")
+                # Update password if admin exists (in case password changed)
+                admin.hashed_password = get_password_hash(ADMIN_PASSWORD)
+                admin.is_admin = True
+                admin.is_active = True
+                db.commit()
+                logger.info(f"ℹ️  Admin user already exists: {ADMIN_EMAIL} (password updated)")
         except Exception as e:
-            print(f"⚠️  Error creating admin user: {e}")
+            logger.error(f"⚠️  Error creating/updating admin user: {e}")
             db.rollback()
         finally:
             db.close()
     else:
-        print("⚠️  ADMIN_PASSWORD not set - admin user not created")
+        logger.warning("⚠️  ADMIN_PASSWORD not set - admin user not created")
 
     # Start background tasks
     print("Starting background tasks...")
@@ -76,13 +89,24 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Rage Room", version="1.0.0", lifespan=lifespan)
 
 # CORS configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# When using ["*"], credentials must be False
+# For production, set ALLOWED_ORIGINS env var with specific domains
+if ALLOWED_ORIGINS == ["*"]:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,  # Cannot use True with ["*"]
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
