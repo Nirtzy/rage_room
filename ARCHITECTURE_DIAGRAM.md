@@ -278,7 +278,3 @@ graph TD
 
 ---
 
-**Note**: These diagrams use Mermaid syntax. They will render automatically on GitHub and in many markdown viewers. For best viewing, use:
-- GitHub (automatic rendering)
-- VS Code with Mermaid extension
-- Online viewers like [Mermaid Live Editor](https://mermaid.live/)
