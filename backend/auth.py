@@ -39,11 +39,24 @@ def get_password_hash(password: str) -> str:
     """
     # Bcrypt has a hard limit of 72 bytes
     # Convert to bytes, truncate if needed, then back to string
+    if not password:
+        raise ValueError("Password cannot be empty")
+    
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
+        # Truncate to exactly 72 bytes to avoid bcrypt error
         password_bytes = password_bytes[:72]
+        # Decode back to string, ignoring any incomplete UTF-8 sequences at the end
         password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.hash(password)
+    
+    try:
+        return pwd_context.hash(password)
+    except ValueError as e:
+        # If still too long (shouldn't happen, but safety check), truncate more aggressively
+        if "cannot be longer than 72 bytes" in str(e):
+            password = password[:72] if len(password) > 72 else password
+            return pwd_context.hash(password)
+        raise
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
