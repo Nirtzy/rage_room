@@ -91,13 +91,15 @@ app = FastAPI(title="Rage Room", version="1.0.0", lifespan=lifespan)
 # CORS configuration
 # When using ["*"], credentials must be False
 # For production, set ALLOWED_ORIGINS env var with specific domains
+# Note: Authorization headers work with allow_credentials=False, but cookies won't
 if ALLOWED_ORIGINS == ["*"]:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=False,  # Cannot use True with ["*"]
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["*"],  # This includes Authorization header
+        expose_headers=["*"],  # Expose all headers to client
     )
 else:
     app.add_middleware(
@@ -106,6 +108,7 @@ else:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
 
 # Mount static files

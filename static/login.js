@@ -81,7 +81,27 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
                 });
 
                 if (!userResponse.ok) {
-                    throw new Error('Failed to get user info');
+                    let errorText = '';
+                    try {
+                        const errorData = await userResponse.json();
+                        errorText = errorData.detail || `Status: ${userResponse.status}`;
+                    } catch (parseError) {
+                        errorText = `Status: ${userResponse.status} ${userResponse.statusText}`;
+                    }
+                    console.error('Failed to get user info:', errorText, 'Response:', userResponse);
+                    
+                    // If it's a 401/403, token might be invalid - don't redirect
+                    if (userResponse.status === 401 || userResponse.status === 403) {
+                        throw new Error(`Authentication failed: ${errorText}`);
+                    }
+                    
+                    // For other errors, try to continue anyway (user might still be able to access)
+                    console.warn('User info fetch failed, but token is valid. Attempting redirect...');
+                    showSuccess('Login successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                    return;
                 }
 
                 const userData = await userResponse.json();
@@ -99,7 +119,8 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
                 }, 1000);
             } catch (e) {
                 console.error('Failed to get user info:', e);
-                showError('Login successful but failed to load user info. Please try again.');
+                const errorMessage = e.message || 'Failed to load user info';
+                showError(`Login successful but ${errorMessage}. Please check console for details.`);
             }
         } else {
             showError(data.detail || `Login failed: ${response.status}`);
