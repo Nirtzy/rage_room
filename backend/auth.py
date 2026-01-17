@@ -14,8 +14,8 @@ from backend.models import User
 # Password hashing - use bcrypt directly to avoid passlib initialization issues
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT bearer scheme
-security = HTTPBearer()
+# JWT bearer scheme - auto_error=False to handle errors ourselves
+security = HTTPBearer(auto_error=False)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -68,6 +68,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -76,27 +79,56 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    
+    # Ensure it's a string (python-jose can return bytes in some versions)
+    if isinstance(encoded_jwt, bytes):
+        encoded_jwt = encoded_jwt.decode('utf-8')
+    
+    logger.info(f"Token created for user_id: {data.get('sub')}, expires: {expire}, token length: {len(encoded_jwt)}")
     return encoded_jwt
 
 
 def decode_access_token(token: str) -> Optional[dict]:
     """Decode and validate a JWT token"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        logger.info(f"Token decoded successfully, user_id: {payload.get('sub')}")
         return payload
-    except JWTError:
+    except JWTError as e:
+        logger.warning(f"JWT decode error: {e}, token preview: {token[:20]}...")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error decoding token: {e}")
         return None
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """Get the current authenticated user from JWT token"""
     import logging
     logger = logging.getLogger(__name__)
     
-    token = credentials.credentials
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    if credentials is None:
+        logger.warning("No authorization credentials provided")
+        raise credentials_exception
+    
+    try:
+        token = credentials.credentials
+        logger.info(f"Received token, length: {len(token)}, preview: {token[:30]}...")
+    except Exception as e:
+        logger.error(f"Failed to get credentials: {e}")
+        raise credentials_exception
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -107,7 +139,7 @@ def get_current_user(
     try:
         payload = decode_access_token(token)
         if payload is None:
-            logger.warning("Failed to decode JWT token")
+            logger.warning("Failed to decode JWT token - token may be invalid or expired")
             raise credentials_exception
 
         user_id: int = payload.get("sub")
@@ -133,7 +165,7 @@ def get_current_user(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in get_current_user: {e}")
+        logger.error(f"Unexpected error in get_current_user: {e}", exc_info=True)
         raise credentials_exception
 
 
