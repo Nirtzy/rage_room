@@ -1,0 +1,155 @@
+/* Login/Register Page Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #0a0a0a;
+    color: #00ff00;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    background-color: #1a1a1a;
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    padding: 40px;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #00ff00;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.subtitle {
+    text-align: center;
+    color: #00aa00;
+    margin-bottom: 30px;
+    font-size: 0.9em;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #00ff00;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    color: #00aa00;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.tab.active {
+    color: #00ff00;
+    background-color: rgba(0, 255, 0, 0.1);
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #00ff00;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    background-color: #0a0a0a;
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+}
+
+input:focus {
+    outline: none;
+    border-color: #00ff00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #00ff00;
+    color: #0a0a0a;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+button:hover {
+    background-color: #00aa00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+}
+
+.error-message {
+    color: #ff0000;
+    text-align: center;
+    margin-bottom: 15px;
+    display: none;
+    padding: 10px;
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid #ff0000;
+    border-radius: 5px;
+}
+
+.success-message {
+    color: #00ff00;
+    text-align: center;
+    margin-bottom: 15px;
+    display: none;
+    padding: 10px;
+    background-color: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+}
+
+.skip-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.skip-link a {
+    color: #00aa00;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.skip-link a:hover {
+    color: #00ff00;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+#register-form {
+    display: none;
+}

@@ -165,14 +165,13 @@ const emojiPicker = document.getElementById("emoji-picker");
 // Emoji picker toggle
 emojiBtn.addEventListener("click", (e) => {
   e.stopPropagation();
-  const isVisible = emojiPicker.style.display === "block";
-  emojiPicker.style.display = isVisible ? "none" : "block";
+  emojiPicker.classList.toggle("hidden");
 });
 
 // Close emoji picker when clicking outside
 document.addEventListener("click", (e) => {
   if (!emojiPicker.contains(e.target) && e.target !== emojiBtn) {
-    emojiPicker.style.display = "none";
+    emojiPicker.classList.add("hidden");
   }
 });
 

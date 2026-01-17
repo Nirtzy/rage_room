@@ -15,7 +15,36 @@ header {
   margin-bottom: 1rem;
   border-bottom: 1px solid #333;
   padding-bottom: 0.5rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
   position: relative;
+}
+
+.header-spacer {
+  flex: 1;
+}
+
+.header-right {
+  flex: 1;
+  text-align: right;
+}
+
+#headline-title {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+#auth-links {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 #disclaimer {
@@ -27,14 +56,22 @@ header {
 }
 
 #nickname-display {
-  position: absolute;
-  top: 0.5rem;
-  right: 0;
+  margin-top: 0.5rem;
+  text-align: center;
   background: #222;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: 1px solid #444;
   font-size: 0.85rem;
+  display: inline-block;
+  width: 100%;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hidden {
+  display: none;
 }
 
 #current-nickname {
@@ -85,6 +122,10 @@ header {
   margin-bottom: 0.5rem;
   width: 100%;
   max-width: 500px;
+}
+
+#emoji-picker.hidden {
+  display: none;
 }
 
 .emoji-grid {
