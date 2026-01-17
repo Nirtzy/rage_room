@@ -95,8 +95,8 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
                 detail="Account is inactive"
             )
 
-        # Create access token
-        access_token = create_access_token(data={"sub": user.id})
+        # Create access token - JWT 'sub' field must be a string
+        access_token = create_access_token(data={"sub": str(user.id)})
         logger.info(f"User logged in: {user_credentials.email} (admin: {user.is_admin})")
 
         return {"access_token": access_token, "token_type": "bearer"}

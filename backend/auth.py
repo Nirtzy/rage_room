@@ -142,9 +142,16 @@ def get_current_user(
             logger.warning("Failed to decode JWT token - token may be invalid or expired")
             raise credentials_exception
 
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str = payload.get("sub")
+        if user_id_str is None:
             logger.warning("JWT token missing user_id in payload")
+            raise credentials_exception
+        
+        # Convert string back to integer
+        try:
+            user_id = int(user_id_str)
+        except (ValueError, TypeError) as e:
+            logger.error(f"Invalid user_id format in token: {user_id_str}, error: {e}")
             raise credentials_exception
 
         logger.info(f"Looking up user with id: {user_id}")
