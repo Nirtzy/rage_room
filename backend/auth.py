@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import bcrypt as bcrypt_lib
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -10,7 +11,7 @@ from backend.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from backend.database import get_db
 from backend.models import User
 
-# Password hashing
+# Password hashing - use bcrypt directly to avoid passlib initialization issues
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT bearer scheme
@@ -28,7 +29,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     if len(password_bytes) > 72:
         password_bytes = password_bytes[:72]
         plain_password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.verify(plain_password, hashed_password)
+    
+    # Use bcrypt directly for consistency
+    try:
+        return bcrypt_lib.checkpw(
+            plain_password.encode('utf-8'),
+            hashed_password.encode('utf-8')
+        )
+    except Exception:
+        # Fallback to passlib if bcrypt direct check fails
+        return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
@@ -37,11 +47,10 @@ def get_password_hash(password: str) -> str:
     Note: bcrypt has a 72-byte limit. Passwords longer than 72 bytes will be truncated.
     This is a bcrypt library limitation, not a security issue.
     """
-    # Bcrypt has a hard limit of 72 bytes
-    # Convert to bytes, truncate if needed, then back to string
     if not password:
         raise ValueError("Password cannot be empty")
     
+    # Bcrypt has a hard limit of 72 bytes - truncate BEFORE hashing
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
         # Truncate to exactly 72 bytes to avoid bcrypt error
@@ -49,14 +58,12 @@ def get_password_hash(password: str) -> str:
         # Decode back to string, ignoring any incomplete UTF-8 sequences at the end
         password = password_bytes.decode('utf-8', errors='ignore')
     
-    try:
-        return pwd_context.hash(password)
-    except ValueError as e:
-        # If still too long (shouldn't happen, but safety check), truncate more aggressively
-        if "cannot be longer than 72 bytes" in str(e):
-            password = password[:72] if len(password) > 72 else password
-            return pwd_context.hash(password)
-        raise
+    # Use bcrypt directly to avoid passlib initialization issues with long passwords
+    # Generate salt and hash
+    salt = bcrypt_lib.gensalt()
+    hashed = bcrypt_lib.hashpw(password.encode('utf-8'), salt)
+    # Return as string (bcrypt format compatible with passlib)
+    return hashed.decode('utf-8')
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

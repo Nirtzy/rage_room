@@ -48,9 +48,26 @@ def get_db():
 def init_db():
     """Initialize database tables"""
     from backend.models import Message, User  # Import here to avoid circular imports
+    from sqlalchemy import inspect, text
+    
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created/verified successfully")
+        
+        # Check if user_id column exists in messages table, add it if missing
+        # This handles databases created before user_id was added
+        try:
+            inspector = inspect(engine)
+            if 'messages' in inspector.get_table_names():
+                columns = [col['name'] for col in inspector.get_columns('messages')]
+                if 'user_id' not in columns:
+                    logger.info("Adding user_id column to messages table...")
+                    with engine.begin() as conn:  # begin() auto-commits
+                        conn.execute(text("ALTER TABLE messages ADD COLUMN user_id INTEGER"))
+                    logger.info("user_id column added successfully")
+        except Exception as migration_error:
+            # If migration fails, log but don't crash - column might already exist
+            logger.warning(f"Could not add user_id column (may already exist): {migration_error}")
     except Exception as e:
         logger.error(f"Failed to create database tables: {e}")
         raise

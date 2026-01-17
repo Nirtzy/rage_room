@@ -160,8 +160,20 @@ async def keep_alive_task():
         db = SessionLocal()
         try:
             today = datetime.now().strftime("%Y-%m-%d")
-            message_count = db.query(Message).filter(Message.date_created == today).count()
+            # Only query columns that exist (user_id may not exist in older databases)
+            try:
+                message_count = db.query(Message).filter(Message.date_created == today).count()
+            except Exception as e:
+                # If user_id column doesn't exist, query without it
+                # This handles databases created before user_id was added
+                from sqlalchemy import text
+                result = db.execute(text(
+                    "SELECT COUNT(*) FROM messages WHERE date_created = :date"
+                ), {"date": today})
+                message_count = result.scalar() or 0
             print(f"[HEARTBEAT] Server alive - {message_count} messages, {len(connected_clients)} clients")
+        except Exception as e:
+            print(f"[HEARTBEAT] Error: {e}")
         finally:
             db.close()
 
