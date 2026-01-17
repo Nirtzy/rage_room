@@ -40,6 +40,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
             )
 
         # Create new user
+        # Note: bcrypt truncates passwords > 72 bytes automatically, but we handle it explicitly
         hashed_password = get_password_hash(user_data.password)
         new_user = User(
             email=user_data.email,

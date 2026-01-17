@@ -23,6 +23,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 
 # Admin Configuration
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@rageroom.com")
+# Note: bcrypt has a 72-byte password limit. Passwords longer than 72 bytes will be automatically truncated.
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Set this in environment variables
 
 # CORS
